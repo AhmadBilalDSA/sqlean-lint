@@ -1,0 +1,55 @@
+name: 'SQLean-Lint Quality Gate'
+description: >-
+  Local-first semantic SQL performance gate: lint, auto-optimize and cost-score
+  SQL files. Zero telemetry; all parsing happens in-process on the runner.
+author: 'sqlean-lint'
+
+branding:
+  icon: 'shield'
+  color: 'green'
+
+inputs:
+  paths:
+    description: 'Space/newline/comma separated files, directories or glob patterns.'
+    required: false
+    default: '**/*.sql'
+  dialect:
+    description: 'snowflake|bigquery|postgres|duckdb|databricks|mysql|sqlite|tsql'
+    required: false
+    default: 'duckdb'
+  fail-on:
+    description: 'Gate threshold: any|medium|high|critical'
+    required: false
+    default: 'critical'
+  min-severity:
+    description: 'Only count violations at/above this severity: LOW|MEDIUM|HIGH|CRITICAL'
+    required: false
+    default: 'LOW'
+
+outputs:
+  issues_found:
+    description: 'Number of violations after the severity filter.'
+  risk_score:
+    description: 'Maximum deterministic cost-model risk score (0-100).'
+  has_critical:
+    description: "'true' when at least one CRITICAL violation exists."
+
+runs:
+  using: 'composite'
+  steps:
+    - id: gate
+      shell: bash
+      env:
+        INPUT_PATHS: ${{ inputs.paths }}
+        INPUT_DIALECT: ${{ inputs.dialect }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_MIN_SEVERITY: ${{ inputs.min-severity }}
+      run: |
+        set -e
+        # Provision dependencies only when missing (CI convenience); the
+        # analysis itself performs zero network calls.
+        python - <<'PY' >/dev/null 2>&1 || python -m pip install "sqlglot>=25" "duckdb>=1.0" "rich>=13" "typer>=0.12"
+        import sqlglot, duckdb, rich, typer
+        PY
+        export PYTHONPATH="${GITHUB_ACTION_PATH}${PYTHONPATH:+:$PYTHONPATH}"
+        python -m sqlean_lint.action
