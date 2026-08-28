@@ -9,7 +9,7 @@
 [![Dialects](https://img.shields.io/badge/Dialects-9%20Supported-orange.svg?style=for-the-badge)](https://github.com)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-emerald.svg?style=for-the-badge)](https://github.com)
 
-[Features](#-key-features) &bull; [Installation](#-installation) &bull; [CLI Commands](#-cli-reference) &bull; [Module Architecture](#-architecture) &bull; [Contributing](#-contributing)
+[Features](#-key-features) &bull; [Installation](#-installation) &bull; [CLI Commands](#-cli-reference) &bull; [Architecture](#-architecture) &bull; [Quick Start](#-quick-start) &bull; [Contributing](#-contributing)
 
 </div>
 
@@ -41,24 +41,41 @@ pip install -e .
 
 ## 🛠️ CLI Reference
 
-```bash
-# Lint a SQL file or directory
-sqlean-lint lint query.sql
+| Command | Usage | Description |
+| :--- | :--- | :--- |
+| **status** | `sqlean-lint status` | Displays license state, active tier, and system health. |
+| **activate** | `sqlean-lint activate --key <KEY>` | Activates Pro licensing and unlocks enterprise engines. |
+| **convert** | `sqlean-lint convert query.sql --target postgres` | Transpiles queries, JSON schemas, or DataFrame definitions. |
+| **ai** | `sqlean-lint ai validate query.sql` | Runs local LLM semantic analysis and index suggestions. |
+| **update** | `sqlean-lint update` | Checks GitHub Releases for new updates and fixes. |
+| **deactivate** | `sqlean-lint deactivate` | Clears local license tokens. |
 
-# Transpile between dialects
-sqlean-lint transpile query.sql --from sqlite --to postgres
+---
+
+## 🏛️ Architecture & Module Inventory
+
+```text
+sqlean_lint/
+├── features.py     # Pro feature gating, license verification & tier enforcement
+├── security.py     # SHA-256 origin watermarking & integrity checks
+├── knowledge.py    # Core SQL rule education database (8 built-in engines)
+├── autofix.py      # Equivalence verification, AST patcher, source re-writer
+├── transpiler.py   # Multi-dialect transpiler, JSON-to-SQL, DDL generator
+└── profiler.py     # Peak RSS memory tracking, execution runtime analyzer
 ```
 
 ---
 
-## 🏛️ Architecture
+## ⚡ Quick Start
 
+### 1. Lint & Autofix Queries
+```bash
+sqlean-lint check ./queries/sample.sql --fix
 ```
-sqlean-lint/
-├── core/          # Parsing & transpiler engines
-├── linter/        # Rule checker & anti-pattern detectors
-├── optimizer/     # AI & cost-based query optimization
-└── cli.py         # Typer-based command interface
+
+### 2. Transpile Dialects
+```bash
+sqlean-lint convert raw_query.sql --from sqlite --to snowflake --preview
 ```
 
 ---
