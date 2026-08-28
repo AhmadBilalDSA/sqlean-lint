@@ -1,79 +1,63 @@
-# sqlean-lint
+<div align="center">
 
-**Enterprise-grade, zero-telemetry Semantic SQL Performance Linter, AST Auto-Optimizer and Cloud Cost Gating Engine.**
+# `sqlean-lint`
 
-Everything runs **100% locally**: AST parsing via in-process `sqlglot`, cost estimation is a documented deterministic model (optionally cross-checked with local DuckDB), and every artifact — including the HTML dashboard — is fully self-contained. No network calls. No telemetry. No external assets.
+**High-Performance SQL Linter, 9-Dialect Transpiler & AI-Powered Query Optimizer.**
 
-## Install
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg?style=for-the-badge&logo=python)](https://python.org)
+[![Dialects](https://img.shields.io/badge/Dialects-9%20Supported-orange.svg?style=for-the-badge)](https://github.com)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-emerald.svg?style=for-the-badge)](https://github.com)
 
-```bash
-pip install -e .[dev]
-```
+[Features](#-key-features) &bull; [Installation](#-installation) &bull; [CLI Commands](#-cli-reference) &bull; [Module Architecture](#-architecture) &bull; [Contributing](#-contributing)
 
-## CLI
+</div>
 
-```bash
-sqlean-lint queries/ --dialect snowflake                # rich terminal report
-sqlean-lint "**/*.sql" --format json                    # CI-friendly JSON
-sqlean-lint migrations/ --fix                           # apply provably safe rewrites
-sqlean-lint --query "SELECT * FROM a CROSS JOIN b" --fail-on critical
-sqlean-lint etl/ --format html --output report.html     # air-gapped dashboard
-```
+---
 
-Exit codes: `0` gate passed, `1` quality-gate breached, `2` usage error.
+## 🚀 Key Features
 
-### Rules
+- **Multi-Dialect Support:** Seamlessly parse, lint, and transpile between SQLite, PostgreSQL, MySQL, DuckDB, Snowflake, BigQuery, T-SQL, Oracle, and SparkSQL.
+- **Advanced Query Linter:** Detects anti-patterns, missing indexes, cartesian joins, performance bottlenecks, and security flaws.
+- **AI-Powered Query Optimizer:** Intelligently rewrites sub-optimal queries for maximum execution efficiency.
+- **High-Performance CLI:** Built with Typer and Rich for beautiful terminal outputs and robust scripting integration.
 
-| Rule ID | Severity | Detects |
-| --- | --- | --- |
-| SQL-CART-001 | CRITICAL | CROSS JOIN / comma joins / predicate-less joins (O(N*M)) |
-| SQL-SARG-001 | HIGH | Non-SARGable predicates (`YEAR(col)=2026`, `UPPER(col)='X'`, `col+1>10`) |
-| SQL-NOTIN-001 | HIGH | `NOT IN (SELECT ...)` NULL three-valued-logic trap |
-| SQL-SORT-001 | HIGH | Unbounded `ORDER BY` inside CTEs/subqueries |
-| SQL-STAR-001 | MEDIUM | `SELECT *` inside CTEs/subqueries |
-| SQL-CAST-001 | MEDIUM | `CAST(...)` on join keys |
-| SQL-LIKE-001 | MEDIUM | Leading-wildcard `LIKE '%abc'` |
+---
 
-### Safe rewrites (`--fix` / optimizer)
+## 📦 Installation
 
-* `YEAR(d) = 2026` → `d >= CAST('2026-01-01' AS DATE) AND d < CAST('2027-01-01' AS DATE)`
-* `DATE(d) = '2026-01-15'` → half-open daily range
-* `x NOT IN (SELECT c FROM t WHERE p)` → `NOT EXISTS (SELECT 1 FROM t WHERE p AND c = x)` (guarded)
-* Redundant CTE `ORDER BY` (no LIMIT) removal
-
-## MCP server (stdio only)
-
-```json
-{
-  "mcpServers": {
-    "sqlean-lint": {
-      "command": "sqlean-lint-mcp",
-      "args": []
-    }
-  }
-}
-```
-
-Tools: `lint_query`, `optimize_query`, `estimate_query_cost`. Transport is strictly stdin/stdout JSON-RPC 2.0 — no ports are opened.
-
-## GitHub Action
-
-```yaml
-- uses: actions/checkout@v4
-- name: SQLean-Lint gate
-  uses: path/to/sqlean-lint/action.yml
-  with:
-    paths: "migrations/**/*.sql"
-    dialect: snowflake
-    fail-on: high
-```
-
-Outputs: `issues_found`, `risk_score`, `has_critical`.
-
-## Development
+Install in editable mode:
 
 ```bash
-pip install -e .[dev]
-python -m pytest -v          # full offline suite
-python -m compileall .       # syntax sanity
+pip install -e .
 ```
+
+---
+
+## 🛠️ CLI Reference
+
+```bash
+# Lint a SQL file or directory
+sqlean-lint lint query.sql
+
+# Transpile between dialects
+sqlean-lint transpile query.sql --from sqlite --to postgres
+```
+
+---
+
+## 🏛️ Architecture
+
+```
+sqlean-lint/
+├── core/          # Parsing & transpiler engines
+├── linter/        # Rule checker & anti-pattern detectors
+├── optimizer/     # AI & cost-based query optimization
+└── cli.py         # Typer-based command interface
+```
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
