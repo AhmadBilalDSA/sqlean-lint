@@ -73,13 +73,13 @@ sqlean_lint/
 sqlean-lint check ./queries/sample.sql --fix
 ```
 
-### 2. Transpile Dialects
+### 3. AI Performance Diagnostics
 ```bash
-sqlean-lint convert raw_query.sql --from sqlite --to snowflake --preview
+sqlean-lint ai inspect complex_join.sql --provider ollama --model qwen2.5-coder:7b
 ```
 
 ---
 
 ## 📄 License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
