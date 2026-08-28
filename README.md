@@ -17,18 +17,23 @@
 
 ## 🚀 Key Features
 
-- **Multi-Dialect Support:** Seamlessly parse, lint, and transpile between SQLite, PostgreSQL, MySQL, DuckDB, Snowflake, BigQuery, T-SQL, Oracle, and SparkSQL.
-- **Advanced Query Linter:** Detects anti-patterns, missing indexes, cartesian joins, performance bottlenecks, and security flaws.
-- **AI-Powered Query Optimizer:** Intelligently rewrites sub-optimal queries for maximum execution efficiency.
-- **High-Performance CLI:** Built with Typer and Rich for beautiful terminal outputs and robust scripting integration.
+- **Blazing-Fast AST Linting:** In-depth SQL static analysis with strict rule evaluation and instant feedback.
+- **9-Dialect Transpiler:** Seamlessly convert queries across PostgreSQL, MySQL, SQLite, Snowflake, BigQuery, T-SQL, DuckDB, Redshift, and Oracle.
+- **Local AI Query Validation:** Validate query semantics and optimize performance with local LLM integration (Ollama / OpenAI / Anthropic).
+- **Smart Autofix & Patching:** Automatically refactors query anti-patterns, format violations, and syntax errors with verified equivalence.
+- **Resource & RSS Profiling:** Built-in execution profiler tracking memory consumption, peak RSS, and query cost estimates.
+- **Tamper-Proof Verification:** SHA-256 origin watermarking for enterprise query auditing and security integrity.
 
 ---
 
 ## 📦 Installation
 
-Install in editable mode:
-
 ```bash
+# Clone the repository
+git clone https://github.com/AhmadBilalDSA/sqlean-lint.git
+cd sqlean-lint
+
+# Install in editable mode
 pip install -e .
 ```
 
