@@ -1,4 +1,6 @@
-"""Stdio JSON-RPC 2.0 MCP handshake and tool execution tests."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Stdio JSON-RPC 2.0 MCP handshake and tool execution tests."""
 import json
 import os
 import subprocess

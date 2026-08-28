@@ -1,4 +1,6 @@
-"""SQL-CART-001 [CRITICAL]: cartesian product / predicate-less join detection."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+SQL-CART-001 [CRITICAL]: cartesian product / predicate-less join detection."""
 from __future__ import annotations
 
 from typing import List

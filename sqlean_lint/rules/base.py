@@ -1,4 +1,6 @@
-"""Abstract base class every sqlean-lint rule implements."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Abstract base class every sqlean-lint rule implements."""
 from __future__ import annotations
 
 import abc

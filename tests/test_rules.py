@@ -1,4 +1,6 @@
-"""Positive detections, negative controls and edge cases for every rule."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Positive detections, negative controls and edge cases for every rule."""
 import pytest
 
 from sqlean_lint.engine import lint_query

@@ -1,4 +1,6 @@
-"""GitHub Action runner for the sqlean-lint quality gate.
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+GitHub Action runner for the sqlean-lint quality gate.
 
 Emits (to $GITHUB_OUTPUT):
     issues_found  - violation count after the severity filter
@@ -6,8 +8,7 @@ Emits (to $GITHUB_OUTPUT):
     has_critical  - 'true' when at least one CRITICAL violation exists
 
 Also writes a Markdown step summary and emits ::error/::warning annotations.
-Exit codes mirror the CLI gate: 0 pass, 1 threshold breached, 2 input error.
-"""
+Exit codes mirror the CLI gate: 0 pass, 1 threshold breached, 2 input error."""
 from __future__ import annotations
 
 import os

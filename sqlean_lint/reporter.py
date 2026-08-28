@@ -1,9 +1,10 @@
-"""Multi-format reporting: Rich terminal, air-gapped HTML, JSON, Markdown.
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Multi-format reporting: Rich terminal, air-gapped HTML, JSON, Markdown.
 
 The HTML artifact is a *single self-contained file*: inline CSS, vanilla JS,
 inline SVG icons, zero external requests, zero fonts fetched, zero telemetry.
-Terminal output is sanitized to CP1252 so Windows consoles never crash.
-"""
+Terminal output is sanitized to CP1252 so Windows consoles never crash."""
 from __future__ import annotations
 
 import io
@@ -408,7 +409,7 @@ render();
 """
 
 
-def to_html(results: Sequence[LintResult]) -> str:
+def to_html(results: Sequence[LintResult], extras: dict | None = None) -> str:
     """Single-file, offline HTML dashboard (inline CSS/JS/SVG, zero requests)."""
     payload = {
         "tool": "sqlean-lint",
@@ -416,6 +417,8 @@ def to_html(results: Sequence[LintResult]) -> str:
         "summary": build_summary(results),
         "results": [result.to_dict(include_sql=True) for result in results],
     }
+    if extras:
+        payload.update(extras)
     # Prevent </script> breakouts inside embedded JSON payloads.
     payload_json = json.dumps(payload).replace("</", "<\\/")
     return _HTML_TEMPLATE.replace("__PAYLOAD__", payload_json).replace("__VERSION__", __version__)

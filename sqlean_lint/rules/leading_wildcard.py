@@ -1,4 +1,6 @@
-"""SQL-LIKE-001 [MEDIUM]: leading-wildcard LIKE patterns."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+SQL-LIKE-001 [MEDIUM]: leading-wildcard LIKE patterns."""
 from __future__ import annotations
 
 from typing import List

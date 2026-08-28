@@ -1,4 +1,6 @@
-"""Domain dataclasses and enumerations shared across sqlean-lint."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Domain dataclasses and enumerations shared across sqlean-lint."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

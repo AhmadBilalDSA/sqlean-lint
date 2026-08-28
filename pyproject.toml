@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sqlean-lint"
-version = "0.1.0"
+version = "0.2.0"
 description = "Enterprise-grade, zero-telemetry Semantic SQL Performance Linter, AST Auto-Optimizer and Cloud Cost Gating Engine (100% local)."
 readme = "README.md"
 requires-python = ">=3.9"

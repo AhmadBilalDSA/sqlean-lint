@@ -1,4 +1,6 @@
-"""Model Context Protocol server over **stdio only** (JSON-RPC 2.0).
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Model Context Protocol server over **stdio only** (JSON-RPC 2.0).
 
 Privacy/transport guarantees:
 * No sockets, no ports, no HTTP - strictly stdin/stdout framing.
@@ -7,8 +9,7 @@ Privacy/transport guarantees:
 
 Supported methods: initialize, ping, tools/list, tools/call
 (lint_query, optimize_query, estimate_query_cost), resources/list,
-prompts/list. Notifications never receive a response.
-"""
+prompts/list. Notifications never receive a response."""
 from __future__ import annotations
 
 import json

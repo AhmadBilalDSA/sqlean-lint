@@ -1,4 +1,6 @@
-"""Offline artifact validation: JSON schema, air-gapped HTML, CP1252 terminal."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Offline artifact validation: JSON schema, air-gapped HTML, CP1252 terminal."""
 import json
 
 from sqlean_lint.engine import lint_query

@@ -1,8 +1,9 @@
-"""Robust, 100% local AST parsing built on sqlglot.
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Robust, 100% local AST parsing built on sqlglot.
 
 Everything in this module executes in-process. There are no network calls of
-any kind; dialect support is provided entirely by sqlglot's local grammars.
-"""
+any kind; dialect support is provided entirely by sqlglot's local grammars."""
 from __future__ import annotations
 
 import re

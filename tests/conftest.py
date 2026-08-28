@@ -1,16 +1,28 @@
-"""Shared pytest bootstrap: import path plus a sandbox-friendly scratch dir.
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Shared pytest bootstrap: import path plus a sandbox-friendly scratch dir.
 
 The stock ``tmp_path`` fixture manages its root through Windows extended
 ``\\\\?\\`` paths, which the local file sandbox rejects. The ``scratch``
 fixture below provides equivalent per-test isolation using only plain
 relative paths inside the project workspace.
 """
+from __future__ import annotations
+
+import os
 import pathlib
 import shutil
 import sys
 import uuid
 
-import pytest
+# Redirect pytest's temp-file root *before* any pytest internals import
+# to avoid Windows ``PermissionError [WinError 5]`` on the system %TEMP% dir.
+os.environ["PYTEST_DEBUG_TEMPROOT"] = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    ".pytest_tmp",
+)
+
+import pytest  # noqa: E402
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:

@@ -1,4 +1,6 @@
-"""Multi-dialect parsing, safe-parse error shaping and position utilities."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Multi-dialect parsing, safe-parse error shaping and position utilities."""
 import pytest
 
 from sqlean_lint.parser import (

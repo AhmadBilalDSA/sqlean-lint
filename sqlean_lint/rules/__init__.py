@@ -1,4 +1,6 @@
-"""Pluggable rule registry for sqlean-lint."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Pluggable rule registry for sqlean-lint."""
 from __future__ import annotations
 
 from typing import List

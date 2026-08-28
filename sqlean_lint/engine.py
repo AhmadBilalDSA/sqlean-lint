@@ -1,4 +1,6 @@
-"""Lint orchestration shared by the CLI, MCP server and GitHub Action."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Lint orchestration shared by the CLI, MCP server and GitHub Action."""
 from __future__ import annotations
 
 import glob as globlib
@@ -20,6 +22,8 @@ def lint_source(
     file_path: str = "<query>",
     optimize: bool = True,
     rules: Optional[Sequence[BaseRule]] = None,
+    profile: bool = False,
+    with_cloud: bool = False,
 ) -> LintResult:
     """Lint one SQL source string end-to-end (parse, rules, cost, optimize)."""
     started = time.perf_counter()
@@ -61,9 +65,18 @@ def lint_source(
     return result
 
 
-def lint_query(sql: str, dialect: str = "duckdb", optimize: bool = True) -> LintResult:
+def lint_query(
+    sql: str,
+    dialect: str = "duckdb",
+    optimize: bool = True,
+    profile: bool = False,
+    with_cloud: bool = False,
+) -> LintResult:
     """Convenience wrapper for inline queries."""
-    return lint_source(sql, dialect=dialect, file_path="<query>", optimize=optimize)
+    return lint_source(
+        sql, dialect=dialect, file_path="<query>", optimize=optimize,
+        profile=profile, with_cloud=with_cloud,
+    )
 
 
 def resolve_targets(targets: Iterable[str]) -> List[Path]:
@@ -96,12 +109,47 @@ def lint_paths(
     targets: Iterable[str],
     dialect: str = "duckdb",
     optimize: bool = True,
+    profile: bool = False,
+    with_cloud: bool = False,
 ) -> List[LintResult]:
     """Lint every SQL file behind ``targets`` (files/dirs/globs), UTF-8 read."""
     results: List[LintResult] = []
     for path in resolve_targets(targets):
         sql = path.read_text(encoding="utf-8", errors="replace")
         results.append(
-            lint_source(sql, dialect=dialect, file_path=str(path), optimize=optimize)
+            lint_source(
+                sql, dialect=dialect, file_path=str(path), optimize=optimize,
+                profile=profile, with_cloud=with_cloud,
+            )
+        )
+    return results
+
+
+def lint_dbt(
+    dbt_dir: str = "target",
+    *,
+    dialect: str = "duckdb",
+    optimize: bool = True,
+    profile: bool = False,
+    with_cloud: bool = False,
+) -> List[LintResult]:
+    """Lint a dbt project's compiled SQL artifacts under ``dbt_dir/compiled/``."""
+    compiled_dir = Path(dbt_dir) / "compiled"
+    if not compiled_dir.is_dir():
+        raise FileNotFoundError(
+            f"No compiled SQL directory found at '{compiled_dir}'. "
+            "Run `dbt compile` first, or pass --dbt-dir."
+        )
+    sql_files = sorted(compiled_dir.rglob("*.sql"))
+    if not sql_files:
+        return []
+    results: List[LintResult] = []
+    for path in sql_files:
+        sql = path.read_text(encoding="utf-8", errors="replace")
+        results.append(
+            lint_source(
+                sql, dialect=dialect, file_path=str(path), optimize=optimize,
+                profile=profile, with_cloud=with_cloud,
+            )
         )
     return results

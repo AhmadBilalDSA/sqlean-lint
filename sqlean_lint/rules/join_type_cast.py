@@ -1,4 +1,6 @@
-"""SQL-CAST-001 [MEDIUM]: CAST(...) applied to join keys."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+SQL-CAST-001 [MEDIUM]: CAST(...) applied to join keys."""
 from __future__ import annotations
 
 from typing import List

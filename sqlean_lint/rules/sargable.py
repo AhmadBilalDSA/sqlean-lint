@@ -1,4 +1,6 @@
-"""SQL-SARG-001 [HIGH]: non-SARGable predicates wrapping columns."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+SQL-SARG-001 [HIGH]: non-SARGable predicates wrapping columns."""
 from __future__ import annotations
 
 from typing import List, Optional, Set, Tuple

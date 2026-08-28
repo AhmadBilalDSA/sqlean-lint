@@ -1,4 +1,6 @@
-"""Provably-safe AST transformation engine.
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Provably-safe AST transformation engine.
 
 Every rewrite in this module preserves result semantics:
 
@@ -8,8 +10,7 @@ Every rewrite in this module preserves result semantics:
 * CTE ``ORDER BY`` w/o LIMIT    ->  removed (presentation-only sort)
 
 Rewrites are skipped whenever any preconditions are not provably met;
-the optimizer never guesses.
-"""
+the optimizer never guesses."""
 from __future__ import annotations
 
 import datetime as _dt

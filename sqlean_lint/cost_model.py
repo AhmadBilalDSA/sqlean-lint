@@ -1,4 +1,6 @@
-"""Deterministic query plan-risk estimator (0-100 index).
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Deterministic query plan-risk estimator (0-100 index).
 
 Scoring contributions (documented, reproducible, no ML):
 
@@ -9,7 +11,8 @@ Scoring contributions (documented, reproducible, no ML):
 
 The final score is clamped to [0, 100] and banded into risk levels.
 The same input always yields byte-identical output (CI-cache friendly).
-"""
+
+Cloud cost estimation constants (fully offline, baked-in pricing)."""
 from __future__ import annotations
 
 from typing import List, Optional, Sequence
@@ -112,3 +115,79 @@ def estimate_cost(
         sort_risk=sort_risk,
         explanation=explanation,
     )
+
+
+# --------------------------------------------------------------------------
+# Cloud cost estimation (fully offline — baked-in pricing constants)
+# --------------------------------------------------------------------------
+
+BIGQUERY_ONDEMAND_USD_PER_TB: float = 6.25
+BIGQUERY_MIN_SCAN_BYTES: int = 10 * 1024 * 1024  # 10 MiB minimum per table
+
+SNOWFLAKE_USD_PER_CREDIT: float = 3.00
+# (min_credits_per_hour, warehouse_size_label, credits_per_hour)
+SNOWFLAKE_LADDER: tuple = (
+    (1, "XS", 1),
+    (2, "S", 2),
+    (4, "M", 4),
+    (8, "L", 8),
+    (16, "XL", 16),
+    (32, "2XL", 32),
+    (64, "3XL", 64),
+)
+
+
+def _count_tables(expressions: Sequence[exp.Expression]) -> int:
+    """Count distinct table references across all statements."""
+    seen: set = set()
+    for tree in expressions:
+        for table in tree.find_all(exp.Table):
+            name = table.name
+            if name:
+                seen.add(name.lower())
+    return len(seen)
+
+
+def estimate_cloud_costs(
+    expressions: Sequence[exp.Expression],
+    scan_bytes_hint: int = 100 * 1024 * 1024,
+) -> dict:
+    """Estimate BigQuery and Snowflake costs from AST structure.
+
+    *scan_bytes_hint* is the estimated per-table scan size in bytes.
+    Returns a dict with ``bigquery`` and ``snowflake`` sub-dicts.
+    """
+    table_count = _count_tables(expressions)
+    total_scan = max(table_count, 1) * scan_bytes_hint
+    total_tb = total_scan / (1024 ** 4)
+
+    bq_min = max(total_scan, table_count * BIGQUERY_MIN_SCAN_BYTES)
+    bq_usd = (bq_min / (1024 ** 4)) * BIGQUERY_ONDEMAND_USD_PER_TB
+
+    tables_str = f"{table_count} table(s), ~{total_scan // (1024 * 1024)} MiB scan"
+    recommended_size = "XS"
+    for min_credits, label, credits in SNOWFLAKE_LADDER:
+        if credits >= table_count:
+            recommended_size = label
+            break
+    else:
+        recommended_size = SNOWFLAKE_LADDER[-1][1]
+
+    sf_credits = next(c for _, l, c in SNOWFLAKE_LADDER if l == recommended_size)
+    sf_usd_hr = sf_credits * SNOWFLAKE_USD_PER_CREDIT
+
+    return {
+        "bigquery": {
+            "usd_per_tb": BIGQUERY_ONDEMAND_USD_PER_TB,
+            "estimated_scan_tb": round(total_tb, 6),
+            "estimated_usd": round(bq_usd, 4),
+            "tables": tables_str,
+        },
+        "snowflake": {
+            "usd_per_credit": SNOWFLAKE_USD_PER_CREDIT,
+            "recommended_warehouse": recommended_size,
+            "credits_per_hour": sf_credits,
+            "estimated_usd_per_hour": round(sf_usd_hr, 2),
+            "tables": tables_str,
+        },
+    }

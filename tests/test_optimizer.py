@@ -1,4 +1,6 @@
-"""Semantic-preservation tests for the AST rewrite engine."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+Semantic-preservation tests for the AST rewrite engine."""
 import re
 
 from sqlean_lint.optimizer import optimize_sql

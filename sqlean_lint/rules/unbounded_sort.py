@@ -1,4 +1,6 @@
-"""SQL-SORT-001 [HIGH]: unbounded ORDER BY inside CTEs / subqueries."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+SQL-SORT-001 [HIGH]: unbounded ORDER BY inside CTEs / subqueries."""
 from __future__ import annotations
 
 from typing import List

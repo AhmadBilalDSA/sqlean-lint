@@ -1,4 +1,6 @@
-"""SQL-STAR-001 [MEDIUM]: SELECT * inside CTEs and subqueries."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+SQL-STAR-001 [MEDIUM]: SELECT * inside CTEs and subqueries."""
 from __future__ import annotations
 
 from typing import List

@@ -1,4 +1,6 @@
-"""SQL-NOTIN-001 [HIGH]: NOT IN (<subquery>) NULL-trap detection."""
+"""Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
+
+SQL-NOTIN-001 [HIGH]: NOT IN (<subquery>) NULL-trap detection."""
 from __future__ import annotations
 
 from typing import List
