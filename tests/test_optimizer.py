@@ -1,6 +1,8 @@
 """Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
 
 Semantic-preservation tests for the AST rewrite engine."""
+from __future__ import annotations
+
 import re
 
 from sqlean_lint.optimizer import optimize_sql

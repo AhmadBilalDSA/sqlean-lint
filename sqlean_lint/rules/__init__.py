@@ -10,6 +10,25 @@ from .cartesian import CartesianJoinRule
 from .join_type_cast import JoinTypeCastRule
 from .leading_wildcard import LeadingWildcardRule
 from .null_in_subquery import NullInSubqueryRule
+from .pro import (
+    DEFAULT_RULES,
+    PRO_RULE_CLASSES,
+    SARGableDateRule,
+    CartesianProductRule,
+    WildcardSelectRule,
+    LintViolation,
+    apply_fixes,
+    ast_cache_size,
+    cached_parse,
+    clear_ast_cache,
+    line_col_of,
+    render,
+    run_all,
+    lint_sql,
+    fix_sql,
+    lint_files,
+    collect_sql_files,
+)
 from .sargable import NON_SARGABLE_FUNCTIONS, SargableRule
 from .select_star import SelectStarRule
 from .unbounded_sort import UnboundedSortRule
@@ -26,6 +45,24 @@ __all__ = [
     "NON_SARGABLE_FUNCTIONS",
     "get_default_rules",
     "RULE_CLASSES",
+    # sqlean-lint Pro rule engine
+    "LintViolation",
+    "WildcardSelectRule",
+    "CartesianProductRule",
+    "SARGableDateRule",
+    "DEFAULT_RULES",
+    "PRO_RULE_CLASSES",
+    "cached_parse",
+    "clear_ast_cache",
+    "ast_cache_size",
+    "run_all",
+    "apply_fixes",
+    "line_col_of",
+    "render",
+    "lint_sql",
+    "fix_sql",
+    "lint_files",
+    "collect_sql_files",
 ]
 
 RULE_CLASSES = (

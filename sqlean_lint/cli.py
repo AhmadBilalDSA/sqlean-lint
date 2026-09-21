@@ -2,19 +2,26 @@
 
 sqlean-lint CLI - linting plus the Phase 2 command surface.
 
-The root ``app`` is a :class:`typer.Typer` whose generated group class is
-:class:`SQLeanGroup`; its ``resolve_command`` silently routes unknown
+The root ``app`` is a :class:`typer.Typer` (Click-based) whose generated group
+class is :class:`SQLeanGroup`; its ``resolve_command`` silently routes unknown
 invocations to ``lint``, preserving the historical bare-CLI ergonomics
 (``sqlean-lint file.sql``, ``sqlean-lint --query ...``) while exposing real
-subcommands: serve | convert | update | pricing | activate | status |
-deactivate | ai."""
+subcommands: check | ui | serve | convert | update | pricing | activate |
+status | deactivate | ai.
+
+Hybrid dual-boot:
+  * ``sqlean-lint check ...``    -> headless scan (text/json/sarif output);
+  * ``sqlean-lint ui`` (or no args) -> launches the CustomTkinter dashboard.
+"""
 from __future__ import annotations
 
 import dataclasses
+import os
 import sys
 from pathlib import Path
 from typing import List, Optional
 
+import click as clicklib
 import typer
 from typer.core import TyperGroup
 
@@ -28,8 +35,8 @@ _FORMATS = ("rich", "json", "html", "markdown")
 _FAIL_ON_RANK = {"any": 1, "low": 1, "medium": 2, "high": 3, "critical": 4}
 
 _LINT_EPILOG = (
-    "Other commands: serve | convert | update | pricing | ai | activate | "
-    "status | deactivate\nRun 'sqlean-lint <command> --help' for details."
+    "Other commands: check | ui | serve | convert | update | pricing | ai | "
+    "activate | status | deactivate\nRun 'sqlean-lint <command> --help' for details."
 )
 
 
@@ -39,15 +46,22 @@ class SQLeanGroup(TyperGroup):
     Injection must happen inside ``parse_args``: newer clicks validate
     group-level options before resolving a subcommand, which would reject
     legacy flag-style bare calls (``sqlean-lint --query ...``) otherwise.
+
+    Invoking ``sqlean-lint`` with no arguments routes to the ``ui`` command so
+    a bare launch opens the desktop dashboard (dual-boot form factor).
     """
 
     def parse_args(self, ctx, args):
-        if args and args[0] not in self.commands:
+        if not args:
+            args = ["ui"]
+        elif args[0] not in self.commands:
             args = ["lint", *args]
         return super().parse_args(ctx, args)
 
     def resolve_command(self, ctx, args):
-        if args and args[0] not in self.commands:
+        if not args:
+            args = ["ui"]
+        elif args[0] not in self.commands:
             args = ["lint", *args]
         return super().resolve_command(ctx, args)
 
@@ -72,8 +86,8 @@ app = typer.Typer(
     help=(
         "sqlean-lint - semantic SQL performance linter, AST auto-optimizer and "
         "cloud cost gate. 100% local: zero network calls, zero telemetry.\n\n"
-        "Subcommands: lint | serve | convert | update | pricing | ai | "
-        "activate | status | deactivate"
+        "Subcommands: check | ui | lint | serve | convert | update | pricing "
+        "| ai | activate | status | deactivate"
     ),
 )
 
@@ -265,6 +279,115 @@ def lint(
         err=True,
     )
     raise typer.Exit(code=0)
+
+
+# --------------------------------------------------------------------------
+# check - headless Pro AST scan (Phase 1 hybrid form factor)
+# --------------------------------------------------------------------------
+
+@app.command(name="check")
+def check(
+    targets: Optional[List[str]] = typer.Argument(
+        None, help="SQL files or directories to scan (Pro AST rules)."
+    ),
+    dialect: str = typer.Option(
+        "duckdb", "--dialect", "-d",
+        help=f"SQL dialect: {', '.join(SUPPORTED_DIALECTS)}.",
+    ),
+    fmt: str = typer.Option(
+        "text", "--format", "-f", help="Output format: text, json or sarif."
+    ),
+    language: str = typer.Option(
+        "en", "--language", "-l", help="Report language: en or ur."
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o", help="Write report to file instead of stdout."
+    ),
+    strip_fixable: bool = typer.Option(
+        False, "--strip-fixable", help="Exclude auto-fixable findings from output."
+    ),
+) -> None:
+    """Headless lint using the Pro semantic AST engine (exit 0/1/2)."""
+    from .i18n import load_catalog
+    from .reporters import render
+
+    try:
+        dialect_name = normalize_dialect(dialect)
+    except ValueError as err:
+        raise _fail(str(err)) from None
+
+    if not targets:
+        raise _fail("Provide SQL targets (files or directories).")
+
+    try:
+        paths = [str(p) for p in resolve_targets(targets)]
+    except FileNotFoundError as err:
+        raise _fail(str(err)) from None
+    if not paths:
+        typer.echo("No .sql files found.")
+        raise typer.Exit(code=0)
+
+    from .rules import collect_sql_files, lint_files as pro_lint_files
+
+    sql_paths = collect_sql_files(paths)
+    if not sql_paths:
+        typer.echo("No .sql files found.")
+        raise typer.Exit(code=0)
+
+    grouped = pro_lint_files(sql_paths, dialect_name)
+
+    if strip_fixable:
+        grouped = {
+            path: [v for v in violations if not v.fixable]
+            for path, violations in grouped.items()
+        }
+        grouped = {p: v for p, v in grouped.items() if v}
+
+    normalized_format = fmt.strip().lower()
+    if normalized_format not in ("text", "json", "sarif"):
+        raise _fail(f"Invalid --format {fmt!r}; expected text|json|sarif.")
+
+    load_catalog(language)
+    rendered = render(grouped, fmt=normalized_format)
+
+    if output is not None:
+        output.write_text(rendered, encoding="utf-8")
+        typer.secho(f"report written: {output}", fg=typer.colors.BLUE, err=True)
+    else:
+        typer.echo(rendered)
+
+    total = sum(len(v) for v in grouped.values())
+    raise typer.Exit(code=1 if total else 0)
+
+
+# --------------------------------------------------------------------------
+# ui - launch the CustomTkinter dashboard (dual-boot)
+# --------------------------------------------------------------------------
+
+@app.command(name="ui")
+def ui(
+    language: str = typer.Option("en", "--language", "-l", help="UI language: en or ur."),
+    theme: str = typer.Option("dark", "--theme", "-t", help="UI theme: dark or light."),
+) -> None:
+    """Launch the sqlean-lint Pro desktop dashboard.
+
+    If the environment variable ``SQLEAN_LINT_NO_GUI=1`` is set, this command
+    prints a short message and exits cleanly without launching Tk.  This lets
+    the test suite exercise the CLI routing without a display server.
+    """
+    if os.environ.get("SQLEAN_LINT_NO_GUI") in ("1", "true", "yes"):
+        typer.echo("UI launch suppressed by SQLEAN_LINT_NO_GUI=1.")
+        raise typer.Exit(code=0)
+
+    try:
+        from .gui import main as gui_main
+    except ImportError as err:
+        raise _fail(
+            f"GUI dependencies missing: {err}. "
+            "Install with: pip install customtkinter"
+        ) from None
+
+    gui_main(language=language, theme=theme)
 
 
 # --------------------------------------------------------------------------
@@ -467,6 +590,23 @@ def deactivate() -> None:
         typer.echo("No cached license found; nothing to do.")
 
 
+@app.command(name="lease")
+def lease() -> None:
+    """Show the 30-day offline license lease state for this machine."""
+    from .license_manager import LicenseValidator, LEASE_DAYS
+
+    validator = LicenseValidator()
+    info = validator.lease_info()
+    typer.echo(f"offline lease window: {LEASE_DAYS} days")
+    if info is None:
+        typer.echo("No lease on this machine. Activate with `sqlean-lint activate --key ...`.")
+        return
+    typer.echo(f"key       : {info['key_hint']}")
+    typer.echo(f"first_seen: {info['first_seen']}")
+    typer.echo(f"last_seen : {info['last_seen']}")
+    typer.echo(f"valid     : {info['valid']}")
+
+
 # --------------------------------------------------------------------------
 # ai - hybrid optimizer (local Ollama default)
 # --------------------------------------------------------------------------
@@ -500,5 +640,13 @@ def ai(
     typer.echo(payload["suggestion"])
 
 
-if __name__ == "__main__":  # pragma: no cover
+def main() -> None:
+    """Entry point for the ``sqlean-lint`` console script.
+
+    Registered in ``pyproject.toml`` as ``sqlean-lint = "sqlean_lint.cli:main"``.
+    """
     app()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

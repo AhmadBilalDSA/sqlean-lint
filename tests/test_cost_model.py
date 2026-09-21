@@ -1,6 +1,8 @@
 """Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
 
 Risk-score assertions: safe vs pathological queries and determinism."""
+from __future__ import annotations
+
 from sqlean_lint.cost_model import estimate_cost
 from sqlean_lint.engine import lint_query
 from sqlean_lint.parser import safe_parse

@@ -1,6 +1,8 @@
 """Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
 
 Multi-dialect parsing, safe-parse error shaping and position utilities."""
+from __future__ import annotations
+
 import pytest
 
 from sqlean_lint.parser import (

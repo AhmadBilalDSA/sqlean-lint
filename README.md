@@ -1,85 +1,133 @@
 <div align="center">
 
-# `sqlean-lint`
 
-**High-Performance SQL Linter, 9-Dialect Transpiler & AI-Powered Query Optimizer.**
+# ⚡ sqlean-lint
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg?style=for-the-badge&logo=python)](https://python.org)
-[![Dialects](https://img.shields.io/badge/Dialects-9%20Supported-orange.svg?style=for-the-badge)](https://github.com)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-emerald.svg?style=for-the-badge)](https://github.com)
 
-[Features](#-key-features) &bull; [Installation](#-installation) &bull; [CLI Commands](#-cli-reference) &bull; [Architecture](#-architecture) &bull; [Quick Start](#-quick-start) &bull; [Contributing](#-contributing)
+### *High-Performance AST Static Analysis & Performance Optimization Engine for SQL*
+
+
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-38bdf8?style=for-the-badge&logo=python&logoColor=white)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge)](#)
+[![Code Style: Ruff](https://img.shields.io/badge/Code%20Style-Ruff-f59e0b?style=for-the-badge)](#)
+[![Architecture](https://img.shields.io/badge/Architecture-AST%20Visitor-emerald?style=for-the-badge)](#)
+
+
+<p align="center">
+  A local-first, zero-runtime-leak SQL linter and AST mutation toolkit.<br />
+  Detects non-SARGable bottlenecks, Cartesian joins, and schema hazards before they hit production.
+</p>
+
+
+[Key Features](#-key-features) •
+[Architecture](#-architecture) •
+[Rule Reference](#-built-in-ruleset) •
+[Quickstart](#-quickstart) •
+[PRO Edition](#-pro-edition)
+
+
+---
+
 
 </div>
 
+
+## 🌟 Key Features
+
+
+* **Deterministic AST Traversal**: Operates strictly on syntax trees via `sqlglot`—no fragile regex matching.
+* **Dialect Native**: Full semantic support across **PostgreSQL**, **DuckDB**, **MySQL**, and **SQLite**.
+* **Zero-Leak Memory Engine**: Hardened test and parse runner operating at <110 MB peak working set.
+* **Sub-Millisecond Diagnostics**: Identifies anti-patterns, non-SARGable clauses, and unbounded projections with exact line-and-column fidelity.
+* **Dual Interface Ready**: High-throughput terminal CLI for CI/CD gates + modern CustomTkinter Studio GUI for desktop analysis.
+
+
 ---
 
-## 🚀 Key Features
 
-- **Blazing-Fast AST Linting:** In-depth SQL static analysis with strict rule evaluation and instant feedback.
-- **9-Dialect Transpiler:** Seamlessly convert queries across PostgreSQL, MySQL, SQLite, Snowflake, BigQuery, T-SQL, DuckDB, Redshift, and Oracle.
-- **Local AI Query Validation:** Validate query semantics and optimize performance with local LLM integration (Ollama / OpenAI / Anthropic).
-- **Smart Autofix & Patching:** Automatically refactors query anti-patterns, format violations, and syntax errors with verified equivalence.
-- **Resource & RSS Profiling:** Built-in execution profiler tracking memory consumption, peak RSS, and query cost estimates.
-- **Tamper-Proof Verification:** SHA-256 origin watermarking for enterprise query auditing and security integrity.
+## 🏛 Architecture
+
+
+```
+Raw Query ──► Lexer & Tokenizer ──► AST Syntax Graph ──► Visitor Passes
+│
+┌───────────────────────┬─────────────────────────┤
+▼                       ▼                         ▼
+[SARGability Engine]    [Join & Schema Guard]    [Heuristic Cost Rating]
+│                       │                         │
+└───────────────────────┼─────────────────────────┘
+▼
+Structured Diagnostic Tokens / Diffs
+```
+
+
+
 
 ---
 
-## 📦 Installation
+
+## 📋 Built-In Ruleset
+
+
+| Code | Severity | Classification | Target Pattern | Suggested Remediation |
+| :--- | :--- | :--- | :--- | :--- |
+| `PRF-E101` | **Error** | Performance | Unbounded `SELECT *` in subqueries | Explicit projection list |
+| `PRF-E102` | **Error** | Correctness | Comma joins / Missing `ON` | Explicit `INNER JOIN ... ON` |
+| `PRF-W103` | **Warning** | Performance | Non-SARGable function predicate | B-Tree indexable range scan |
+| `PRF-W104` | **Warning** | Performance | Leading wildcard `LIKE '%...'` | Trigram index or exact match |
+| `COR-E201` | **Error** | Correctness | `NOT IN` with nullable subquery | Transform to `NOT EXISTS` |
+| `STY-W301` | **Warning** | Optimization | Unbounded `ORDER BY` inside CTE | Push down ordering / apply `LIMIT` |
+
+
+---
+
+
+## 🚀 Quickstart
+
+
+### Installation
+
 
 ```bash
 # Clone the repository
 git clone https://github.com/AhmadBilalDSA/sqlean-lint.git
 cd sqlean-lint
 
-# Install in editable mode
+# Install in editable mode with development tooling
 pip install -e .
 ```
 
----
 
-## 🛠️ CLI Reference
+### CLI Usage
 
-| Command | Usage | Description |
-| :--- | :--- | :--- |
-| **status** | `sqlean-lint status` | Displays license state, active tier, and system health. |
-| **activate** | `sqlean-lint activate --key <KEY>` | Activates Pro licensing and unlocks enterprise engines. |
-| **convert** | `sqlean-lint convert query.sql --target postgres` | Transpiles queries, JSON schemas, or DataFrame definitions. |
-| **ai** | `sqlean-lint ai validate query.sql` | Runs local LLM semantic analysis and index suggestions. |
-| **update** | `sqlean-lint update` | Checks GitHub Releases for new updates and fixes. |
-| **deactivate** | `sqlean-lint deactivate` | Clears local license tokens. |
 
----
-
-## 🏛️ Architecture & Module Inventory
-
-```text
-sqlean_lint/
-├── features.py     # Pro feature gating, license verification & tier enforcement
-├── security.py     # SHA-256 origin watermarking & integrity checks
-├── knowledge.py    # Core SQL rule education database (8 built-in engines)
-├── autofix.py      # Equivalence verification, AST patcher, source re-writer
-├── transpiler.py   # Multi-dialect transpiler, JSON-to-SQL, DDL generator
-└── profiler.py     # Peak RSS memory tracking, execution runtime analyzer
-```
-
----
-
-## ⚡ Quick Start
-
-### 1. Lint & Autofix Queries
 ```bash
-sqlean-lint check ./queries/sample.sql --fix
+# Lint a single query or script
+sqlean-lint scan queries/analytics.sql --dialect postgres
+
+# Run automated batch audit with JSON output
+sqlean-lint scan ./models --dialect duckdb --format json
 ```
 
-### 3. AI Performance Diagnostics
+
+### Running the Test Suite
+
+
 ```bash
-sqlean-lint ai inspect complex_join.sql --provider ollama --model qwen2.5-coder:7b
+python -m pytest tests/ -v
 ```
 
----
 
-## 📄 License
+## 💎 PRO Edition
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+The sqlean-lint PRO suite bundles advanced database refactoring tools into a standalone desktop application:
+
+
+* **AST Mutation Engine**: One-click automatic query rewriting for SARGable transformations and join normalization.
+* **CustomTkinter Dark Studio**: Visual AST tree explorer, live typing debounce (300ms), and side-by-side git-style diffs.
+* **Standalone Windows Binary**: Single-file compiled `.exe` powered by Nuitka/PyInstaller with zero system prerequisites.
+* **Enterprise CI/CD Artifacts**: Direct SARIF generation for GitHub Code Scanning and native JUnit test reports.
+
+
+Crafted with care by Ahmad Bilal

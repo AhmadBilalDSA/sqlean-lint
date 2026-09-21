@@ -1,10 +1,83 @@
+# ============================================================
+# sqlean-lint PRO — repository hygiene (Phase 1 hard-lock)
+# ============================================================
+
+# ── Python bytecode / package metadata ──────────────────────
 __pycache__/
 *.py[cod]
 *.egg-info/
+*.so
+*.pyd
+
+# ── Agent tooling / skill junctions ─────────────────────────
+.claude/
+.agents/
+
+# ── Build output & compiled artifacts ───────────────────────
 build/
 dist/
+*.exe
+*.app
+*.dmg
+*.AppImage
+*.whl
+*.tar.gz
+*.zip
+*.o
+*.obj
+*.nuitka-work*
+
+# ── Test / coverage / hypothesis caches ─────────────────────
+.pytest_cache/
 .pytest-tmp/
+.pytest_tmp/
+.pytest-scratch/
+.hypothesis/
 .coverage
+.coverage.*
 htmlcov/
-.venv/
+cov.xml
+coverage/
+test-results/
 .benchmarks/
+.venv/
+venv/
+
+# ── Local databases / history ledgers ───────────────────────
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+history.db
+recent_queries.json
+query_history.json
+
+# ── Environment & secrets ───────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+pro_license.json
+credentials.json
+
+# ── Logs / frontend tooling (portal/) ──────────────────────
+*.log
+npm-debug.log*
+yarn-error.log*
+node_modules/
+.vite/
+
+# ── Editors / IDEs / OS ─────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Generated Nuitka entry-point (build_exe.py) ─────────────
+run_desktop.py
+gateway.py

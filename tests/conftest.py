@@ -22,6 +22,10 @@ os.environ["PYTEST_DEBUG_TEMPROOT"] = os.path.join(
     ".pytest_tmp",
 )
 
+# Suppress CustomTkinter GUI launches during the test suite so CLI routing
+# exercises ``sqlean-lint ui`` (and the bare-args shortcut) without a display.
+os.environ["SQLEAN_LINT_NO_GUI"] = "1"
+
 import pytest  # noqa: E402
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]

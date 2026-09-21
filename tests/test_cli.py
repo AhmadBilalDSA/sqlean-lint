@@ -1,6 +1,8 @@
 """Copyright (c) 2026 Ahmad Bilal (AhmadBilalDSA). All Rights Reserved.
 
 End-to-end CLI runs: exit codes, formats, severity gates and --fix."""
+from __future__ import annotations
+
 import json
 import pathlib
 
@@ -104,7 +106,6 @@ def test_glob_pattern_discovery(scratch: pathlib.Path):
 @pytest.mark.parametrize(
     "args",
     [
-        [],
         ["--query", "SELECT 1", "--dialect", "oracle"],
         ["--query", "SELECT 1", "--format", "yaml"],
         ["--query", "SELECT 1", "--fail-on", "catastrophic"],
@@ -138,3 +139,118 @@ def test_rich_format_prints_summary_header():
     result = runner.invoke(app, ["--query", CROSS_JOIN])
     assert result.exit_code == 1
     assert "SQLEAN-LINT SEMANTIC SQL QUALITY REPORT" in result.stdout.upper()
+
+
+# ── Phase 1: hybrid dual-boot routing, check, ui ───────────────────────
+
+
+def test_bare_args_routes_to_ui():
+    """No arguments -> UI command -> suppressed by SQLEAN_LINT_NO_GUI in tests."""
+    result = runner.invoke(app, [])
+    assert result.exit_code == 0
+    assert "SQLEAN_LINT_NO_GUI" in result.stdout
+
+
+def test_ui_suppressed_by_env():
+    result = runner.invoke(app, ["ui"])
+    assert result.exit_code == 0
+    assert "UI launch suppressed" in result.stdout
+
+
+def test_check_no_targets_exits_two():
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 2
+
+
+def test_check_no_sql_files(scratch: pathlib.Path):
+    (scratch / "empty.txt").write_text("no sql here", encoding="utf-8")
+    result = runner.invoke(app, ["check", str(scratch)])
+    assert result.exit_code == 0
+    assert "No .sql files found" in result.stdout
+
+
+def test_check_text_format(scratch: pathlib.Path):
+    sql_file = scratch / "bad.sql"
+    sql_file.write_text("SELECT * FROM a, b\n", encoding="utf-8")
+    result = runner.invoke(app, ["check", str(scratch), "--format", "text"])
+    assert result.exit_code == 1
+    assert "SQL-WILD-001" in result.stdout
+    assert "SQL-CART-001" in result.stdout
+
+
+def test_check_json_format(scratch: pathlib.Path):
+    sql_file = scratch / "bad.sql"
+    sql_file.write_text("SELECT * FROM a, b\n", encoding="utf-8")
+    result = runner.invoke(app, ["check", str(scratch), "--format", "json"])
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert payload["summary"]["total_violations"] >= 2
+
+
+def test_check_sarif_format(scratch: pathlib.Path):
+    sql_file = scratch / "bad.sql"
+    sql_file.write_text("SELECT 1\n", encoding="utf-8")
+    result = runner.invoke(app, ["check", str(scratch), "--format", "sarif"])
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["version"] == "2.1.0"
+    assert payload["runs"][0]["tool"]["driver"]["name"] == "sqlean-lint-pro"
+
+
+def test_check_exit_zero_on_clean(scratch: pathlib.Path):
+    (scratch / "clean.sql").write_text("SELECT id FROM t WHERE id = 1\n", encoding="utf-8")
+    result = runner.invoke(app, ["check", str(scratch)])
+    assert result.exit_code == 0
+
+
+def test_check_strip_fixable(scratch: pathlib.Path):
+    sql_file = scratch / "fixable.sql"
+    sql_file.write_text("SELECT id FROM t WHERE YEAR(d) = 2026\n", encoding="utf-8")
+    result = runner.invoke(app, ["check", str(sql_file), "--strip-fixable"])
+    assert result.exit_code == 0
+    assert "SQL-SARG-001" not in result.stdout
+
+    # Without stripping, the fixable finding is reported.
+    result = runner.invoke(app, ["check", str(sql_file)])
+    assert result.exit_code == 1
+    assert "SQL-SARG-001" in result.stdout
+
+
+def test_check_output_file(scratch: pathlib.Path):
+    sql_file = scratch / "test.sql"
+    sql_file.write_text("SELECT 1\n", encoding="utf-8")
+    out = scratch / "report.txt"
+    result = runner.invoke(app, ["check", str(sql_file), "--output", str(out)])
+    assert result.exit_code == 0
+    assert out.exists()
+
+
+def test_check_invalid_format(scratch: pathlib.Path):
+    sql_file = scratch / "test.sql"
+    sql_file.write_text("SELECT 1\n", encoding="utf-8")
+    result = runner.invoke(app, ["check", str(sql_file), "--format", "xml"])
+    assert result.exit_code == 2
+
+
+def test_check_dialects(scratch: pathlib.Path):
+    sql_file = scratch / "test.sql"
+    sql_file.write_text("SELECT * FROM t WHERE YEAR(d) = 2026\n", encoding="utf-8")
+    for dialect in ("duckdb", "postgres", "snowflake"):
+        result = runner.invoke(app, ["check", str(sql_file), "--dialect", dialect])
+        assert result.exit_code == 1
+        assert "SQL-SARG-001" in result.stdout
+
+
+def test_help_lists_check_and_ui():
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    assert "check" in result.stdout
+    assert "ui" in result.stdout
+
+
+def test_check_help():
+    result = runner.invoke(app, ["check", "--help"])
+    assert result.exit_code == 0
+    assert "--dialect" in result.stdout
+    assert "--format" in result.stdout
+    assert "--strip-fixable" in result.stdout

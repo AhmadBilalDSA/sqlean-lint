@@ -11,7 +11,10 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Sequence, Tuple, Union
 
 import sqlglot
-from sqlglot import exp
+try:
+    from sqlglot import exp
+except ImportError:
+    import sqlglot.expressions as exp
 from sqlglot.errors import ErrorLevel
 
 from .types import LintContext, RuleViolation, Severity

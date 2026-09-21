@@ -2,10 +2,15 @@
 
 Connectors package for sqlean-lint.
 """
+from __future__ import annotations
 
 from sqlean_lint.connectors.base import BaseConnector
 from sqlean_lint.connectors.bigquery import BigQueryConnector
 from sqlean_lint.connectors.duckdb_local import DuckDBLocalConnector
+from sqlean_lint.connectors.polyglot import (
+    csv_to_sql,
+    sql_to_mongodb,
+)
 from sqlean_lint.connectors.snowflake import SnowflakeConnector
 
 CONNECTOR_REGISTRY: dict[str, type[BaseConnector]] = {
